@@ -270,3 +270,67 @@ class FindingItem(BaseModel):
     target_name: str
     limitations_summary: str
 
+
+class DimensionEvaluation(BaseModel):
+    dimension_name: str
+    dimension_key: str
+    fidelity_score: int
+    analog_match_summary: str
+    divergence_summary: str
+    applicable_test_protocol: str
+    nasa_dataset_reference: str
+
+
+class MissionQualificationScorecard(BaseModel):
+    id: str
+    earth_region_id: str
+    earth_region_name: str
+    planetary_target_id: str
+    planetary_target_name: str
+    target_mission_program: str
+    overall_operational_fidelity: float
+    trl_level: int
+    primary_mission_role: str
+    dimensions: List[DimensionEvaluation]
+    epistemological_limitations: List[str]
+    recommended_analog_campaign: str
+
+
+class RoverMobilityAnalysis(BaseModel):
+    earth_region_id: str
+    earth_region_name: str
+    analog_target_name: str
+    surface_bearing_capacity: str
+    max_safe_slope_deg: float
+    regional_avg_slope_deg: float
+    obstacle_geometry_description: str
+    traction_slip_risk: Literal["bajo", "moderado", "alto", "critico"]
+    wheel_interaction_protocol: str
+    analog_rover_platform: str
+
+
+class IsruFeasibilityAnalysis(BaseModel):
+    earth_region_id: str
+    earth_region_name: str
+    target_body: Literal["Moon", "Mars"]
+    target_feature_name: str
+    primary_resource: str
+    estimated_water_yield: str
+    thermal_extraction_temp_c: float
+    energy_requirement_kwh_per_kg: float
+    byproducts_utilization: str
+    comparison_with_lunar_psr: str
+
+
+class HabitatShieldingAnalysis(BaseModel):
+    earth_region_id: str
+    earth_region_name: str
+    subsurface_structure_type: str
+    interior_constant_temp_c: float
+    exterior_temp_range_c: str
+    radiation_attenuation_factor: str
+    atmospheric_pressure_divergence: str
+    inflatable_habitat_anchoring_method: str
+    analog_for_lunar_site: str
+
+

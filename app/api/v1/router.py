@@ -12,10 +12,14 @@ from app.models.frontend import (
     ComparisonPayloadFrontend,
     EarthRegion,
     FindingItem,
+    HabitatShieldingAnalysis,
+    IsruFeasibilityAnalysis,
     ListResponse,
+    MissionQualificationScorecard,
     MissionUseCaseFrontend,
     PlanetaryTarget,
     RegionDetailResponse,
+    RoverMobilityAnalysis,
     ScientificSourceFrontend,
 )
 from app.models.catalog_data import (
@@ -28,6 +32,10 @@ from app.models.catalog_data import (
     PLANETARY_TARGETS,
     SOURCES,
     build_comparison_payload,
+    get_habitat_shielding,
+    get_isru_feasibility,
+    get_mission_scorecard,
+    get_rover_mobility,
 )
 from app.models.dataset import VerificationStatusEnum
 from app.models.evidence import (
@@ -398,5 +406,52 @@ def list_findings() -> List[FindingItem]:
     Retorna los hallazgos científicos consolidados a partir de las evidencias y comparaciones auditadas.
     """
     return FINDINGS
+
+
+# =========================================================================
+# Endpoints Especializados para Misiones Espaciales (NASA Space Apps)
+# =========================================================================
+
+@api_router.get("/missions/scorecard", response_model=MissionQualificationScorecard, summary="Evaluador de Idoneidad de Misión (7 Dimensiones NASA)")
+def get_mission_scorecard_endpoint(
+    earth_region_id: str = Query(..., description="ID de la región análoga terrestre"),
+    planetary_target_id: str = Query(..., description="ID del objetivo planetario (Marte o Luna)"),
+) -> MissionQualificationScorecard:
+    """
+    Evalúa la fidelidad operacional de un análogo terrestre en las 7 dimensiones técnicas del reto de la NASA.
+    Incluye delimitación explícita de concordancias, divergencias y nivel TRL alcanzable.
+    """
+    return get_mission_scorecard(earth_region_id, planetary_target_id)
+
+
+@api_router.get("/missions/mobility", response_model=RoverMobilityAnalysis, summary="Analizador de Movilidad y Tracción de Rovers")
+def get_rover_mobility_endpoint(
+    earth_region_id: str = Query(..., description="ID de la región análoga terrestre"),
+) -> RoverMobilityAnalysis:
+    """
+    Retorna el análisis de capacidad portante, geometría de obstáculos y riesgos de tracción para rovers de exploración (VIPER, Artemis LTV, Perseverance).
+    """
+    return get_rover_mobility(earth_region_id)
+
+
+@api_router.get("/missions/isru", response_model=IsruFeasibilityAnalysis, summary="Calculador de Factibilidad ISRU (Extracción de Recursos In-Situ)")
+def get_isru_feasibility_endpoint(
+    earth_region_id: str = Query(..., description="ID de la región análoga terrestre"),
+) -> IsruFeasibilityAnalysis:
+    """
+    Retorna la estimación de rendimiento de agua potable/propelente y energía térmica requerida a partir de minerales hidratados y análogos criogénicos.
+    """
+    return get_isru_feasibility(earth_region_id)
+
+
+@api_router.get("/missions/habitat-shielding", response_model=HabitatShieldingAnalysis, summary="Modelador de Hábitat Subterráneo y Blindaje Artemis")
+def get_habitat_shielding_endpoint(
+    earth_region_id: str = Query(..., description="ID de la región análoga terrestre"),
+) -> HabitatShieldingAnalysis:
+    """
+    Retorna el análisis de amortiguación térmica y blindaje contra radiación cósmica en tubos de lava para la Base Lunar Permanente Artemis.
+    """
+    return get_habitat_shielding(earth_region_id)
+
 
 

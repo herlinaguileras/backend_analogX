@@ -10,15 +10,20 @@ from app.models.frontend import (
     ComparisonPayloadFrontend,
     CrsDatum,
     DatasetMetadataFrontend,
+    DimensionEvaluation,
     EarthRegion,
     FindingItem,
+    HabitatShieldingAnalysis,
+    IsruFeasibilityAnalysis,
     ListResponse,
+    MissionQualificationScorecard,
     MissionUseCaseFrontend,
     PlanetaryTarget,
     QualitativeEvidenceFrontend,
     RegionDetailResponse,
     RegionGeometry,
     ResamplingRequirement,
+    RoverMobilityAnalysis,
     ScientificLimitationFrontend,
     ScientificObservationFrontend,
     ScientificSourceFrontend,
@@ -1274,3 +1279,486 @@ FINDINGS: List[FindingItem] = [
         limitations_summary="Divergencia de vacío absoluto lunar (10^-12 bar) frente a presión barométrica de altura (~580 hPa) y gravedad 1/6 g.",
     ),
 ]
+
+# 12. Generadores Especializados de Misión Espacial (NASA Space Apps Challenge)
+
+def get_mission_scorecard(earth_id: str, target_id: str) -> MissionQualificationScorecard:
+    alias_earth = {
+        "salar-de-uyuni": "salar-de-uyuni",
+        "bo_salar_uyuni": "salar-de-uyuni",
+        "sol-de-manana": "sol-de-manana",
+        "bo_sol_de_manana": "sol-de-manana",
+        "cuevas-volcanicas-lipez": "cuevas-volcanicas-lipez",
+        "bo_cuevas_lipez": "cuevas-volcanicas-lipez",
+        "cumbre-licancabur": "cumbre-licancabur",
+        "bo_cumbre_licancabur": "cumbre-licancabur",
+        "altiplano-sur": "altiplano-sur",
+        "bo_altiplano_sur": "altiplano-sur",
+    }
+    resolved_earth_id = alias_earth.get(earth_id, "salar-de-uyuni")
+    is_mars = target_id in ["terra-sirenum", "mars_terra_sirenum", "Mars", "mars"]
+    resolved_target_id = "terra-sirenum" if is_mars else "lunar-south-pole"
+
+    if resolved_earth_id == "cuevas-volcanicas-lipez":
+        dimensions = [
+            DimensionEvaluation(
+                dimension_name="Subsuelo y Refugios",
+                dimension_key="subsurface",
+                fidelity_score=5,
+                analog_match_summary="Cavidades volcánicas subterráneas con aislamiento térmico y apantallamiento de radiación natural.",
+                divergence_summary="Gravedad terrestre (1.0g vs 0.16g) y presión barométrica de ~580 hPa frente al vacío lunar (10^-12 bar).",
+                applicable_test_protocol="Pruebas de despliegue de módulos inflables presurizados y medición de gradientes microclimáticos.",
+                nasa_dataset_reference="LRO LOLA Polar Altimetry / LROC NAC Marius Hills Skylight imagery",
+            ),
+            DimensionEvaluation(
+                dimension_name="Geología y Suelo",
+                dimension_key="geology",
+                fidelity_score=3,
+                analog_match_summary="Paredes rocosas basálticas y dacíticas con estabilidad mecánica competente.",
+                divergence_summary="Rocas ígneas terrestres con intemperismo frente a basaltos máficos de mar lunar y brechas anortosíticas.",
+                applicable_test_protocol="Ensayos de perforación y anclaje de cimientos para esclusas de hábitat.",
+                nasa_dataset_reference="Copernicus DEM 30m / USGS EROS Volcanic geology",
+            ),
+            DimensionEvaluation(
+                dimension_name="Terreno y Topografía",
+                dimension_key="terrain",
+                fidelity_score=4,
+                analog_match_summary="Pozos de colapso (skylights) con taludes de 20° a 35° comparables a entradas de tubos de lava lunares.",
+                divergence_summary="Mayor erosión eólica y clastos redondeados por intemperismo terrestre.",
+                applicable_test_protocol="Ensayos de descenso autónomo de cargas y micro-rovers mediante cabrestante.",
+                nasa_dataset_reference="Copernicus DEM TanDEM-X / LRO LOLA DEM 20m",
+            ),
+            DimensionEvaluation(
+                dimension_name="Clima Extremo",
+                dimension_key="climate",
+                fidelity_score=4,
+                analog_match_summary="Temperatura interior estabilizada (~9-11°C) que atenúa la oscilación exterior día/noche.",
+                divergence_summary="Ausencia del ciclo de temperatura de 28 días lunares (+120°C a -130°C en superficie).",
+                applicable_test_protocol="Monitoreo microclimático de transferencia de calor roca-hábitat.",
+                nasa_dataset_reference="LRO Diviner Lunar Radiometer Experiment (DLRE)",
+            ),
+            DimensionEvaluation(
+                dimension_name="Agua y Hielo",
+                dimension_key="water_ice",
+                fidelity_score=2,
+                analog_match_summary="Microclima interior con humedad controlada y ausencia de condensación masiva.",
+                divergence_summary="En la Luna el agua existe solo como hielo en trampas frías a 40 K.",
+                applicable_test_protocol="Control de estanqueidad y condensación en esclusas.",
+                nasa_dataset_reference="LRO Diviner PSR Water Ice Stability Map",
+            ),
+            DimensionEvaluation(
+                dimension_name="Fenómenos Naturales",
+                dimension_key="natural_phenomena",
+                fidelity_score=3,
+                analog_match_summary="Deflación eólica superficial que no penetra en la cavidad interior.",
+                divergence_summary="Ausencia de bombardeo continuo de micrometeoritos presentes en superficie lunar.",
+                applicable_test_protocol="Evaluación de sellos herméticos contra polvo fino exterior.",
+                nasa_dataset_reference="LROC QuickMap dust transport / Sentinel-2 SWIR",
+            ),
+            DimensionEvaluation(
+                dimension_name="Biología Extrema",
+                dimension_key="extreme_biology",
+                fidelity_score=3,
+                analog_match_summary="Microorganismos endolíticos y biofilms en oscuridad total adaptados a oligotrofia.",
+                divergence_summary="La superficie lunar es biológicamente estéril.",
+                applicable_test_protocol="Protocolos de protección planetaria y control de contaminación biológica humana.",
+                nasa_dataset_reference="NASA Planetary Protection Office Standards / ESA Astrobiology",
+            ),
+        ]
+        return MissionQualificationScorecard(
+            id=f"scorecard_{resolved_earth_id}_{resolved_target_id}",
+            earth_region_id=resolved_earth_id,
+            earth_region_name="Tubos de Lava y Cuevas de Lípez",
+            planetary_target_id=resolved_target_id,
+            planetary_target_name="Polo Sur Lunar (Cráter Shackleton / Artemis)" if not is_mars else "Terra Sirenum (Marte)",
+            target_mission_program="NASA Artemis Program (Artemis Base Camp / Subsurface Architecture)",
+            overall_operational_fidelity=4.4,
+            trl_level=4,
+            primary_mission_role="Análogo de cavidad volcánica para hábitats subterráneos presurizados y blindaje radiológico",
+            dimensions=dimensions,
+            epistemological_limitations=[
+                "Divergencia de presión: atmósfera terrestre enrarecida (580 hPa) frente a vacío lunar absoluto (10^-12 bar).",
+                "Aceleración gravitacional 6 veces superior a la gravedad lunar (9.81 m/s² vs 1.62 m/s²).",
+                "Las cavidades no sustituyen los ensayos criogénicos a 40 K de los fondos de cráter en sombra permanente.",
+            ],
+            recommended_analog_campaign="Campaña de confinamiento de 14 días para 4 tripulantes en hábitat inflable dentro del tubo de lava con monitoreo dosimétrico pasivo.",
+        )
+
+    elif resolved_earth_id == "sol-de-manana":
+        dimensions = [
+            DimensionEvaluation(
+                dimension_name="Geología y Suelo",
+                dimension_key="geology",
+                fidelity_score=5,
+                analog_match_summary="Alteración hidrotermal sulfato-ácida con azufre nativo y sílice opalina >90% análoga a Home Plate.",
+                divergence_summary="Actividad fumarólica contemporánea activa frente a depósitos volcánicos fósiles marcianos de hace >3.5 Ga.",
+                applicable_test_protocol="Calibración de espectrómetros Raman y XRF con mezcla íntima de azufre, alunita y sílice.",
+                nasa_dataset_reference="NASA PDS MRO CRISM / MER Spirit Mini-TES / Sentinel-2 MSI",
+            ),
+            DimensionEvaluation(
+                dimension_name="Biología Extrema",
+                dimension_key="extreme_biology",
+                fidelity_score=5,
+                analog_match_summary="Comunidades microbianas extremófilas poliextremotolerantes a pH ácido (<2), T hirviente y radiación UV máxima.",
+                divergence_summary="Actualmente no se ha confirmado vida en Marte.",
+                applicable_test_protocol="Validación de bioseñales moleculares y límites de detección de biofirmas fósiles.",
+                nasa_dataset_reference="NASA Astrobiology Institute Andean Hydrothermal Studies",
+            ),
+            DimensionEvaluation(
+                dimension_name="Terreno y Topografía",
+                dimension_key="terrain",
+                fidelity_score=3,
+                analog_match_summary="Colinas volcánicas y terrazas de sinterización hidrotermal.",
+                divergence_summary="Mayor pendiente local y suelos blandos colapsables.",
+                applicable_test_protocol="Protocolos de detección de suelos de baja capacidad portante para evitar atasco de rovers.",
+                nasa_dataset_reference="Copernicus DEM 30m / MRO HiRISE PSP_003160_1410",
+            ),
+            DimensionEvaluation(
+                dimension_name="Clima Extremo",
+                dimension_key="climate",
+                fidelity_score=4,
+                analog_match_summary="Radiación solar UV máxima (UVI > 25) y baja presión (~540 mbar a 4850 msnm).",
+                divergence_summary="Presión terrestre aún dos órdenes de magnitud mayor a los 6 hPa de Marte.",
+                applicable_test_protocol="Degradación de ópticas y sensores bajo radiación UV solar directa sin filtro de ozono denso.",
+                nasa_dataset_reference="NASA Earthdata OMI UV Index / Mars Odyssey THEMIS",
+            ),
+            DimensionEvaluation(
+                dimension_name="Agua y Hielo",
+                dimension_key="water_ice",
+                fidelity_score=3,
+                analog_match_summary="Aguas termales ácidas ricas en sales disueltas y sulfatos.",
+                divergence_summary="Marte actual carece de hidrotermalismo activo superficial con agua líquida.",
+                applicable_test_protocol="Análisis geoquímico in situ de salmueras ácidas.",
+                nasa_dataset_reference="Copernicus CDSE Sentinel-2 Water Indices",
+            ),
+            DimensionEvaluation(
+                dimension_name="Fenómenos Naturales",
+                dimension_key="natural_phenomena",
+                fidelity_score=4,
+                analog_match_summary="Emanación de gases volcánicos (H2S, SO2, CO2) y deposición rápida de sublimados minerales.",
+                divergence_summary="Densidad atmosférica superior en la Tierra.",
+                applicable_test_protocol="Ensayos de corrosión química acelerada de aleaciones aeroespaciales.",
+                nasa_dataset_reference="USGS Volcano Hazards / NASA JPL Volatile Catalog",
+            ),
+            DimensionEvaluation(
+                dimension_name="Subsuelo y Refugios",
+                dimension_key="subsurface",
+                fidelity_score=2,
+                analog_match_summary="Gradiente geotérmico extremo en los primeros 2 metros del suelo.",
+                divergence_summary="Alto riesgo de colapso y calor prohibitivo para refugios humanos.",
+                applicable_test_protocol="Ensayos de sensores de flujo térmico superficial tipo InSight HP3.",
+                nasa_dataset_reference="NASA InSight HP3 Subsurface Thermal Data",
+            ),
+        ]
+        return MissionQualificationScorecard(
+            id=f"scorecard_{resolved_earth_id}_{resolved_target_id}",
+            earth_region_id=resolved_earth_id,
+            earth_region_name="Campo Geotermal Sol de Mañana",
+            planetary_target_id=resolved_target_id,
+            planetary_target_name="Terra Sirenum / Cráter Gusev (Marte)",
+            target_mission_program="NASA Mars 2020 (Perseverance / SHERLOC / SuperCam Astrobiology)",
+            overall_operational_fidelity=4.5,
+            trl_level=5,
+            primary_mission_role="Calibración instrumental espectroscópica y detección de biofirmas en ambientes sulfato-ácidos",
+            dimensions=dimensions,
+            epistemological_limitations=[
+                "Actividad hidrotermal activa frente a sistemas fósiles extintos marcianos del Noachiano (>3.5 Ga).",
+                "La presencia de agua líquida no implica viabilidad de habitabilidad humana sin soporte vital autónomo.",
+                "Gravedad terrestre (9.81 m/s²) vs gravedad marciana (3.71 m/s²).",
+            ],
+            recommended_analog_campaign="Campaña instrumental de espectrometría Raman y fluorescencia X portátil validando discriminación de fases minerales de sílice frente a sulfatos.",
+        )
+
+    elif resolved_earth_id == "cumbre-licancabur":
+        dimensions = [
+            DimensionEvaluation(
+                dimension_name="Clima Extremo",
+                dimension_key="climate",
+                fidelity_score=5,
+                analog_match_summary="Temperaturas nocturnas de hasta -25°C, radiación UV esterilizante y presión de ~500 hPa.",
+                divergence_summary="Temperaturas polares lunares en sombra (PSR) son criogénicas profundas (40 K = -233 °C).",
+                applicable_test_protocol="Pruebas de fatiga térmica y ergonomía en trajes espaciales presurizados Artemis xEMU.",
+                nasa_dataset_reference="LRO Diviner Lunar Radiometer Experiment (DLRE) / NASA Ames Field Data",
+            ),
+            DimensionEvaluation(
+                dimension_name="Terreno y Topografía",
+                dimension_key="terrain",
+                fidelity_score=4,
+                analog_match_summary="Cono volcánico escarpado con taludes de 25° a 40° similar a murallas de cráteres de impacto polares.",
+                divergence_summary="Regolito clástico terrestre frente a regolito pulverizado por micrometeoritos.",
+                applicable_test_protocol="Marchas de ascenso con mochilas de soporte vital simulado PLSS.",
+                nasa_dataset_reference="LRO LOLA Polar DEM 20m / Copernicus DEM 30m",
+            ),
+            DimensionEvaluation(
+                dimension_name="Agua y Hielo",
+                dimension_key="water_ice",
+                fidelity_score=4,
+                analog_match_summary="Laguna de cráter sometida a congelación continua y sublimación por aridez extrema.",
+                divergence_summary="En la Luna el hielo permanece en oscuridad perpetua sin ciclo diurno de iluminación.",
+                applicable_test_protocol="Técnicas de muestreo de núcleos de hielo periglacial bajo aridez extrema.",
+                nasa_dataset_reference="LRO LOLA / Diviner Cold Trap Maps",
+            ),
+            DimensionEvaluation(
+                dimension_name="Geología y Suelo",
+                dimension_key="geology",
+                fidelity_score=3,
+                analog_match_summary="Andesitas y dacitas volcánicas con costras criogénicas de sales.",
+                divergence_summary="Ausencia de anortosita ferroana pura lunar.",
+                applicable_test_protocol="Ensayos de resistencia al desgaste abrasivo de visores y juntas de trajes espaciales.",
+                nasa_dataset_reference="USGS EROS Landsat 8/9 / LROC NAC multispectral",
+            ),
+            DimensionEvaluation(
+                dimension_name="Fenómenos Naturales",
+                dimension_key="natural_phenomena",
+                fidelity_score=4,
+                analog_match_summary="Vientos huracanados de altura (>100 km/h) y ciclado térmico diario extremo.",
+                divergence_summary="En la Luna no existe viento aerodinámico; los fenómenos son electromagnéticos y micrometeóricos.",
+                applicable_test_protocol="Ensayos de resistencia estructural de mástiles de comunicación y antenas.",
+                nasa_dataset_reference="NASA Earthdata MERRA-2 Wind Reanalysis",
+            ),
+            DimensionEvaluation(
+                dimension_name="Biología Extrema",
+                dimension_key="extreme_biology",
+                fidelity_score=4,
+                analog_match_summary="Plancton y bacterias lacustres sobreviviendo bajo el límite biológico de radiación UV terrestre.",
+                divergence_summary="El entorno lunar carece de cualquier ecosistema nativo.",
+                applicable_test_protocol="Monitoreo de bioseñales celulares bajo dosis extremas de radiación UV-B y UV-C.",
+                nasa_dataset_reference="NASA Astrobiology Institute Licancabur Expedition",
+            ),
+            DimensionEvaluation(
+                dimension_name="Subsuelo y Refugios",
+                dimension_key="subsurface",
+                fidelity_score=2,
+                analog_match_summary="Abrigos rocosos naturales de cumbre con escaso volumen interior.",
+                divergence_summary="Estructura volcánica abierta sin conductos lávicos continuos.",
+                applicable_test_protocol="Ensayos de refugios de emergencia inflables de despliegue rápido.",
+                nasa_dataset_reference="Copernicus DEM 30m",
+            ),
+        ]
+        return MissionQualificationScorecard(
+            id=f"scorecard_{resolved_earth_id}_{resolved_target_id}",
+            earth_region_id=resolved_earth_id,
+            earth_region_name="Cumbre Criogénica Licancabur",
+            planetary_target_id=resolved_target_id,
+            planetary_target_name="Polo Sur Lunar (Cráter Shackleton / Artemis)" if not is_mars else "Terra Sirenum (Marte)",
+            target_mission_program="NASA Artemis Surface EVA Operations (xEMU Spacesuit Testing)",
+            overall_operational_fidelity=4.3,
+            trl_level=6,
+            primary_mission_role="Banco de pruebas para ergonomía de trajes espaciales EVA y resistencia de materiales criogénicos",
+            dimensions=dimensions,
+            epistemological_limitations=[
+                "Frío nocturno (-25 °C) severo pero lejos de los 40 K (-233 °C) de las sombras permanentes lunares.",
+                "Presión atmosférica de ~500 hPa reduce la densidad del aire pero no emula el vacío absoluto cósmico.",
+                "Gravedad terrestre (9.81 m/s²) vs gravedad lunar (1.62 m/s²).",
+            ],
+            recommended_analog_campaign="Prueba de movilidad EVA de 8 horas continuas en cumbre con trajes presurizados xEMU instrumentados con telemetría de fatiga biomecánica.",
+        )
+
+    else:
+        # Salar de Uyuni (Defecto / Referencia)
+        dimensions = [
+            DimensionEvaluation(
+                dimension_name="Terreno y Topografía",
+                dimension_key="terrain",
+                fidelity_score=5,
+                analog_match_summary="Hiperplanicie de pendiente basal <0.05° con redes poligonales de 1-3m análogas a las de HiRISE.",
+                divergence_summary="La escala regional es 10 veces mayor y está nivelada por salmueras dinámicas anuales.",
+                applicable_test_protocol="Pruebas cinemáticas de tracción longitudinal, derrape y odometría visual para rovers.",
+                nasa_dataset_reference="NASADEM 30m / MOLA MEGDR 463m / MRO HiRISE PSP_003160_1410",
+            ),
+            DimensionEvaluation(
+                dimension_name="Geología y Suelo",
+                dimension_key="geology",
+                fidelity_score=5,
+                analog_match_summary="Costra masiva de halita (NaCl >95%) con yeso, coincidente con la firma espectral THEMIS en Terra Sirenum.",
+                divergence_summary="En Uyuni el cloruro es moderno activo; en Marte es un paleodepósito fósil de >3.5 Ga.",
+                applicable_test_protocol="Calibración espectral cruzada y ensayos de extracción de agua desde minerales hidratados (ISRU).",
+                nasa_dataset_reference="Mars Odyssey THEMIS DCS B8-7-5 / USGS EROS Cal/Val Uyuni",
+            ),
+            DimensionEvaluation(
+                dimension_name="Agua y Hielo",
+                dimension_key="water_ice",
+                fidelity_score=4,
+                analog_match_summary="Minerales evaporíticos hidratados (yeso) como modelo para reactores de deshidratación térmica ISRU.",
+                divergence_summary="Presencia de salmueras líquidas activas que no existen en el Marte actual.",
+                applicable_test_protocol="Calcinación térmica controlada de yeso a 150°C midiendo rendimiento volumétrico de agua.",
+                nasa_dataset_reference="NASA In-Situ Resource Utilization (ISRU) Technology Plan",
+            ),
+            DimensionEvaluation(
+                dimension_name="Fenómenos Naturales",
+                dimension_key="natural_phenomena",
+                fidelity_score=4,
+                analog_match_summary="Deflación eólica severa, transporte de sales y formación de dunas salinas marginales.",
+                divergence_summary="Menor presión de arrastre por atmósfera más densa que en Marte.",
+                applicable_test_protocol="Evaluación de abrasión salina eólica en rodamientos y sellos mecánicos de rovers.",
+                nasa_dataset_reference="Copernicus Sentinel-2 MSI / Landsat 8/9",
+            ),
+            DimensionEvaluation(
+                dimension_name="Clima Extremo",
+                dimension_key="climate",
+                fidelity_score=3,
+                analog_match_summary="Insolación extrema con albedo deslumbrante (>0.7), ciclado térmico diario de 30°C y sequedad del Altiplano.",
+                divergence_summary="Temperaturas medias de 10°C terrestres vs -60°C en Marte.",
+                applicable_test_protocol="Calibración de balance radiativo y sensores de albedo superficial.",
+                nasa_dataset_reference="USGS ICESat Cal/Val / NASA CERES Solar Radiation",
+            ),
+            DimensionEvaluation(
+                dimension_name="Biología Extrema",
+                dimension_key="extreme_biology",
+                fidelity_score=4,
+                analog_match_summary="Arqueas halófilas y microalgas tolerantes a salinidad saturada y radiación UV extrema.",
+                divergence_summary="Biomasa terrestre detectable con técnicas convencionales.",
+                applicable_test_protocol="Límites de detección de ADN/lípidos en cristales de halita evaporítica.",
+                nasa_dataset_reference="NASA Ames Astrobiology Halophile Research",
+            ),
+            DimensionEvaluation(
+                dimension_name="Subsuelo y Refugios",
+                dimension_key="subsurface",
+                fidelity_score=2,
+                analog_match_summary="Estratigrafía subsuperficial con intercalaciones de sal y limo hasta 120m.",
+                divergence_summary="Suelo salino sin cavidades naturales aptas para hábitats humanos.",
+                applicable_test_protocol="Ensayos de perforación con taladros rotatorios para obtención de testigos.",
+                nasa_dataset_reference="NASA MSR Sample Acquisition and Caching System",
+            ),
+        ]
+        return MissionQualificationScorecard(
+            id=f"scorecard_{resolved_earth_id}_{resolved_target_id}",
+            earth_region_id=resolved_earth_id,
+            earth_region_name="Salar de Uyuni",
+            planetary_target_id=resolved_target_id,
+            planetary_target_name="Terra Sirenum (Marte)" if is_mars else "Polo Sur Lunar (Artemis)",
+            target_mission_program="NASA Mars Exploration Program / VIPER Lunar Rover / Mars Sample Return",
+            overall_operational_fidelity=4.6,
+            trl_level=6,
+            primary_mission_role="Banco de ensayos de movilidad y tracción de rovers en costras salinas y calibración altimétrica",
+            dimensions=dimensions,
+            epistemological_limitations=[
+                "Divergencia temporal irreductible: halita activa anual en Uyuni vs paleodepósitos de cloruro de hace >3.5 Ga en Marte.",
+                "Gravedad terrestre (9.81 m/s²) vs gravedad marciana (3.71 m/s²) y lunar (1.62 m/s²).",
+                "Presión atmosférica de 650 hPa con oxígeno libre frente a 6 hPa de CO2 en Marte.",
+            ],
+            recommended_analog_campaign="Campaña cinemática de 20 km de travesía de rover con ruedas de tacos flexibles sobre redes poligonales de halita evaluando derrape y abrasión.",
+        )
+
+
+def get_rover_mobility(earth_id: str) -> RoverMobilityAnalysis:
+    alias_earth = {
+        "salar-de-uyuni": "salar-de-uyuni",
+        "bo_salar_uyuni": "salar-de-uyuni",
+        "sol-de-manana": "sol-de-manana",
+        "bo_sol_de_manana": "sol-de-manana",
+        "cuevas-volcanicas-lipez": "cuevas-volcanicas-lipez",
+        "bo_cuevas_lipez": "cuevas-volcanicas-lipez",
+        "cumbre-licancabur": "cumbre-licancabur",
+        "bo_cumbre_licancabur": "cumbre-licancabur",
+    }
+    resolved = alias_earth.get(earth_id, "salar-de-uyuni")
+
+    if resolved == "cuevas-volcanicas-lipez":
+        return RoverMobilityAnalysis(
+            earth_region_id=resolved,
+            earth_region_name="Tubos de Lava y Cuevas de Lípez",
+            analog_target_name="Marius Hills Pit / Fosas Lunares (LROC)",
+            surface_bearing_capacity="Roca basáltica competente (>50 MPa) con zonas de bloques sueltos de colapso",
+            max_safe_slope_deg=12.0,
+            regional_avg_slope_deg=18.5,
+            obstacle_geometry_description="Bloques angulosos métricos de lava y rampas escarpadas de colapso de techo",
+            traction_slip_risk="alto",
+            wheel_interaction_protocol="Ensayos de franqueo de obstáculos rocosos y navegación odoplástica sin señal GPS",
+            analog_rover_platform="Artemis Lunar Terrain Vehicle (LTV) / CADRE Micro-Rovers",
+        )
+    elif resolved == "sol-de-manana":
+        return RoverMobilityAnalysis(
+            earth_region_id=resolved,
+            earth_region_name="Sol de Mañana",
+            analog_target_name="Terra Sirenum / Home Plate (Gusev)",
+            surface_bearing_capacity="Muy heterogénea (15 a 80 kPa); riesgo crítico de suelo colapsable por lodos hidrotermales",
+            max_safe_slope_deg=10.0,
+            regional_avg_slope_deg=8.5,
+            obstacle_geometry_description="Montículos de sinter silíceo, respiraderos y ollas de lodo blando",
+            traction_slip_risk="critico",
+            wheel_interaction_protocol="Detección espectral de costras delgadas superficiales para prevenir enterramiento de ruedas (caso rover Spirit en Paso Robles)",
+            analog_rover_platform="NASA Perseverance / Curiosity Mars Science Laboratory",
+        )
+    elif resolved == "cumbre-licancabur":
+        return RoverMobilityAnalysis(
+            earth_region_id=resolved,
+            earth_region_name="Cumbre Criogénica Licancabur",
+            analog_target_name="Murallas de Cráteres Polares Lunares (LOLA)",
+            surface_bearing_capacity="Regolito clástico periglacial con derrubios sueltos (80 a 140 kPa)",
+            max_safe_slope_deg=14.0,
+            regional_avg_slope_deg=28.0,
+            obstacle_geometry_description="Pedregales volcánicos y clastos crioturbados de 10 a 50 cm",
+            traction_slip_risk="alto",
+            wheel_interaction_protocol="Ensayos de adherencia y control de deslizamiento lateral en pendientes volcánicas escarpadas",
+            analog_rover_platform="VIPER Rover / Artemis LTV",
+        )
+    else:
+        # Uyuni
+        return RoverMobilityAnalysis(
+            earth_region_id="salar-de-uyuni",
+            earth_region_name="Salar de Uyuni",
+            analog_target_name="Terra Sirenum / Llanuras de Mares Lunares",
+            surface_bearing_capacity="Alta en costra seca de halita (>250 kPa); riesgo de punzonamiento en zonas de salmuera freática",
+            max_safe_slope_deg=15.0,
+            regional_avg_slope_deg=0.05,
+            obstacle_geometry_description="Rebordes poligonales sobreelevados de halita (5 a 15 cm) con diámetros de 1 a 3 m",
+            traction_slip_risk="moderado",
+            wheel_interaction_protocol="Pruebas cinemáticas de tracción longitudinal al 15% de deslizamiento y resistencia a la fatiga de tacos metálicos",
+            analog_rover_platform="NASA VIPER Rover / Mars Sample Return Sample Fetch Rover",
+        )
+
+
+def get_isru_feasibility(earth_id: str) -> IsruFeasibilityAnalysis:
+    alias_earth = {
+        "salar-de-uyuni": "salar-de-uyuni",
+        "bo_salar_uyuni": "salar-de-uyuni",
+        "cuevas-volcanicas-lipez": "cuevas-volcanicas-lipez",
+        "bo_cuevas_lipez": "cuevas-volcanicas-lipez",
+        "cumbre-licancabur": "cumbre-licancabur",
+        "bo_cumbre_licancabur": "cumbre-licancabur",
+    }
+    resolved = alias_earth.get(earth_id, "salar-de-uyuni")
+
+    if resolved in ["cuevas-volcanicas-lipez", "cumbre-licancabur"]:
+        return IsruFeasibilityAnalysis(
+            earth_region_id=resolved,
+            earth_region_name="Cumbre Criogénica Licancabur y Lagunas de Altitud",
+            target_body="Moon",
+            target_feature_name="Regiones en Sombra Permanente (PSR Cráter Shackleton / 89.9°S)",
+            primary_resource="Hielo de agua periglacial y volátiles criogénicos en trampas frías a 40 K",
+            estimated_water_yield="50 a 100 kg de agua pura por tonelada de regolito polar (5-10% en masa según LRO Diviner)",
+            thermal_extraction_temp_c=80.0,
+            energy_requirement_kwh_per_kg=1.15,
+            byproducts_utilization="Regolito desgasificado procesable mediante sinterizado por microondas para losas de alunizaje",
+            comparison_with_lunar_psr="Análogo de sublimación bajo presión reducida de altura (~500 hPa) frente a destilación directa en vacío lunar",
+        )
+    else:
+        # Uyuni / General
+        return IsruFeasibilityAnalysis(
+            earth_region_id="salar-de-uyuni",
+            earth_region_name="Salar de Uyuni",
+            target_body="Mars",
+            target_feature_name="Paleodepósitos de yeso y cloruros en Terra Sirenum (MRO CRISM)",
+            primary_resource="Agua de hidratación mineral en yeso dihidratado (CaSO4·2H2O)",
+            estimated_water_yield="209 kg de agua potable por tonelada métrica de yeso puro calcinado",
+            thermal_extraction_temp_c=150.0,
+            energy_requirement_kwh_per_kg=0.72,
+            byproducts_utilization="Sulfato de calcio anhidro (anhidrita) apto para conglomerante estructural y material de impresión 3D",
+            comparison_with_lunar_psr="Deshidratación termoquímica de bajo consumo energético frente a extracción criogénica en frío extremo lunar",
+        )
+
+
+def get_habitat_shielding(earth_id: str) -> HabitatShieldingAnalysis:
+    return HabitatShieldingAnalysis(
+        earth_region_id="cuevas-volcanicas-lipez",
+        earth_region_name="Tubos de Lava y Cuevas Volcánicas de Lípez",
+        subsurface_structure_type="Tubo de lava basáltico-dacítico con techo competente de 3 a 6 m",
+        interior_constant_temp_c=9.5,
+        exterior_temp_range_c="-25 °C a +18 °C",
+        radiation_attenuation_factor=">95% de atenuación de radiación cósmica galáctica (GCR) y tormentas solares (SPE)",
+        atmospheric_pressure_divergence="Presión de altura de ~580 hPa frente a vacío absoluto lunar (10^-12 bar)",
+        inflatable_habitat_anchoring_method="Pernos de expansión química en roca volcánica masiva y mamparos inflables de compresión perimetral",
+        analog_for_lunar_site="Tubo de lava de Marius Hills (80m de diámetro) y Fosa de Mare Tranquillitatis",
+    )
+
