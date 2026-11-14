@@ -1,0 +1,31 @@
+# AnalogX — Planetary Analog Discovery Engine (Backend)
+# Dependencias principales para Fase 0 y Fase 1
+
+# Framework Web y Servidor ASGI
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+
+# Validación y Modelado de Datos Tipados y Persistencia
+pydantic>=2.6.0
+pydantic-settings>=2.2.0
+sqlmodel>=0.0.16
+
+# Cliente HTTP Asíncrono para Ingesta de APIs Abiertas (CMR, ODE, CDSE)
+httpx>=0.27.0
+
+# Procesamiento Numérico, Científico y Tabular
+numpy>=1.26.0
+scipy>=1.12.0
+pandas>=2.2.0
+
+# Análisis Geoespacial y Teledetección (Raster y Vectorial)
+shapely>=2.0.0
+rasterio>=1.3.9
+geopandas>=0.14.0
+
+# Testing y Calidad de Código
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+black>=24.2.0
+flake8>=7.0.0
+
