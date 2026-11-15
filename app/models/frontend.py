@@ -334,3 +334,61 @@ class HabitatShieldingAnalysis(BaseModel):
     analog_for_lunar_site: str
 
 
+class ProbeEvaluateRequest(BaseModel):
+    lat: float
+    lon: float
+    preferred_body: Optional[Literal["Moon", "Mars", "Auto"]] = "Auto"
+
+
+class ProbeCoordinates(BaseModel):
+    lat: float
+    lon: float
+    formatted: str
+
+
+class ProbeMatchedTarget(BaseModel):
+    id: str
+    name: str
+    body: Literal["Moon", "Mars", "None"]
+    instrument: str
+    target_coordinates: str
+    target_image: str
+    feature_tag: str
+
+
+class ProbeSubsystems(BaseModel):
+    rover_mobility: float
+    isru_feasibility: float
+    habitat_shielding: float
+    environmental_rigor: float
+
+
+class ProbeGravityComparison(BaseModel):
+    earth_g: float = 1.0
+    target_g: float
+    rover_mass_1000kg_weight_n: float
+    divergence_notice: str
+
+
+class ProbeAtmosphericComparison(BaseModel):
+    earth_pressure_hpa: float
+    target_pressure_hpa: float
+    divergence_notice: str
+
+
+class ProbeEvaluateResponse(BaseModel):
+    coordinates: ProbeCoordinates
+    surface_type: Literal["land", "ocean"]
+    geographic_zone: str
+    biome_classification: str
+    fidelity_index: float
+    confidence_level: Literal["alta", "media", "baja", "nula_oceano"]
+    matched_target: ProbeMatchedTarget
+    subsystems: ProbeSubsystems
+    gravity_comparison: ProbeGravityComparison
+    atmospheric_comparison: ProbeAtmosphericComparison
+    scientific_limitations: List[str]
+    epistemological_audit: str
+    recommended_rehearsal: str
+
+

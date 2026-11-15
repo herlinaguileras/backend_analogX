@@ -18,6 +18,8 @@ from app.models.frontend import (
     MissionQualificationScorecard,
     MissionUseCaseFrontend,
     PlanetaryTarget,
+    ProbeEvaluateRequest,
+    ProbeEvaluateResponse,
     RegionDetailResponse,
     RoverMobilityAnalysis,
     ScientificSourceFrontend,
@@ -32,6 +34,7 @@ from app.models.catalog_data import (
     PLANETARY_TARGETS,
     SOURCES,
     build_comparison_payload,
+    evaluate_custom_probe,
     get_habitat_shielding,
     get_isru_feasibility,
     get_mission_scorecard,
@@ -452,6 +455,19 @@ def get_habitat_shielding_endpoint(
     Retorna el análisis de amortiguación térmica y blindaje contra radiación cósmica en tubos de lava para la Base Lunar Permanente Artemis.
     """
     return get_habitat_shielding(earth_region_id)
+
+
+# =========================================================================
+# Motor de Prospección Libre Planetaria (Point & Scan - NASA Space Apps)
+# =========================================================================
+
+@api_router.post("/probe/evaluate", response_model=ProbeEvaluateResponse, summary="Motor de Prospección Libre Planetaria (Point & Scan)")
+def evaluate_probe_endpoint(payload: ProbeEvaluateRequest) -> ProbeEvaluateResponse:
+    """
+    Evalúa en tiempo real cualquier coordenada geográfica de la Tierra marcada libremente por el usuario.
+    Detecta automáticamente masas marinas y continentales, biomas extremos y compara frente a la base de datos de la NASA.
+    """
+    return evaluate_custom_probe(payload.lat, payload.lon, payload.preferred_body)
 
 
 
